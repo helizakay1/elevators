@@ -1,0 +1,25 @@
+.button {
+    padding: 6px;
+    width: 5rem;
+    color: aliceblue;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.call {
+    background-color: rgb(77, 170, 111);
+    border: none;
+}
+
+.waiting {
+    background-color: rgb(177, 67, 67);
+    border: none;
+    cursor:default;
+}
+
+.arrived {
+    background-color: white;
+    color: rgb(77, 170, 111);
+    border: 1px solid rgb(77, 170, 111);
+    cursor:default;
+}
