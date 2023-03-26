@@ -64,6 +64,12 @@ function Table() {
               });
               return newStatus;
             });
+            setElevatorStatus((prevStatus) => {
+              return prevStatus.map((status, index) => {
+                return index === elevator ? 2 : status;
+              });
+            });
+
             setTimeout(() => {
               setElevatorStatus((prevStatus) => {
                 return prevStatus.map((status, index) => {
@@ -98,7 +104,14 @@ function Table() {
           }
         });
         if (chosenElevator !== null) {
-          elevatorStatus[chosenElevator] = 1;
+          setElevatorStatus((prevStatus) => {
+            return prevStatus.map((status, index) => {
+              if (index === chosenElevator) {
+                return 1;
+              }
+              return status;
+            });
+          });
           bringElevatorToTarget(chosenElevator, floorNeedsElevator);
 
           setQueue(
@@ -110,34 +123,41 @@ function Table() {
       }
     }, 100);
     return () => clearInterval(interval);
-  }, [queue, elevatorLocations, elevatorStatus]);
-
-  const isElevatorHere = (elevator, floor) => {
-    if (elevatorLocations[elevator] === floor) {
-      return true;
-    }
-    return false;
-  };
+  }, [queue, elevatorLocations, elevatorStatus, elevatorSound]);
 
   const isElevatorOnFloor = (floor) => {
-    const found = elevatorLocations.filter((location) => {
-      return location === floor;
-    });
-    return found.length > 0;
+    for (let i = 0; i < 5; i++) {
+      if (elevatorLocations[i] === floor && elevatorStatus[i] === 0) {
+        return i;
+      }
+    }
+    return null;
   };
 
   const onButtonClick = (floor) => {
     if (buttonStatus[floor] === 0) {
-      if (isElevatorOnFloor(floor)) {
+      const elevator = isElevatorOnFloor(floor);
+      if (elevator !== null) {
         setButtonStatus((prevStatus) => {
           return prevStatus.map((status, index) => {
             return index === floor ? 2 : status;
           });
         });
+        setElevatorStatus((prevStatus) => {
+          return prevStatus.map((status, index) => {
+            return index === isElevatorOnFloor(floor) ? 2 : status;
+          });
+        });
+        elevatorSound.play();
         setTimeout(() => {
           setButtonStatus((prevStatus) => {
             return prevStatus.map((status, index) => {
               return index === floor ? 0 : status;
+            });
+          });
+          setElevatorStatus((prevStatus) => {
+            return prevStatus.map((status, index) => {
+              return index === isElevatorOnFloor(floor) ? 0 : status;
             });
           });
         }, 2000);
@@ -153,34 +173,75 @@ function Table() {
   };
 
   return (
-    <table className={styles.table}>
-      <tbody>
+    <div className={styles.container}>
+      <div className={styles.col}>
         {[...Array(10).keys()].map((floor) => {
           return (
-            <tr key={floor}>
-              <td>
-                <h4>{FLOORS[floor]}</h4>
-              </td>
-              {[...Array(5).keys()].map((elevator) => {
-                return (
-                  <td className={styles.cell} key={elevator}>
-                    {isElevatorHere(elevator, floor) ? (
-                      <ElevatorIconSVG />
-                    ) : null}
-                  </td>
-                );
-              })}
-              <td>
-                <Button
-                  status={buttonStatus[floor]}
-                  onClick={() => onButtonClick(floor)}
-                />
-              </td>
-            </tr>
+            <div key={floor} className={styles.cell}>
+              <h4>{FLOORS[floor]}</h4>
+            </div>
           );
         })}
-      </tbody>
-    </table>
+      </div>
+      {[...Array(5).keys()].map((elevator, index) => {
+        return (
+          <div key={index} className={styles.col}>
+            {[...Array(10).keys()].map((floor) => {
+              return (
+                <div
+                  key={floor}
+                  className={`${styles.cell} ${styles["data-cell"]}`}
+                ></div>
+              );
+            })}
+            <ElevatorIconSVG
+              floor={elevatorLocations[elevator]}
+              status={elevatorStatus[elevator]}
+            />
+          </div>
+        );
+      })}
+      <div className={styles.col}>
+        {[...Array(10).keys()].map((floor) => {
+          return (
+            <div key={floor} className={styles.cell}>
+              <Button
+                status={buttonStatus[floor]}
+                onClick={() => onButtonClick(floor)}
+              />
+            </div>
+          );
+        })}
+      </div>
+      {/* <table className={styles.table}>
+        <tbody>
+          {[...Array(10).keys()].map((floor) => {
+            return (
+              <tr key={floor}>
+                <td>
+                  <h4>{FLOORS[floor]}</h4>
+                </td>
+                {[...Array(5).keys()].map((elevator) => {
+                  return (
+                    <td className={styles.cell} key={elevator}>
+                      {isElevatorHere(elevator, floor) ? (
+                        <ElevatorIconSVG />
+                      ) : null}
+                    </td>
+                  );
+                })}
+                <td>
+                  <Button
+                    status={buttonStatus[floor]}
+                    onClick={() => onButtonClick(floor)}
+                  />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table> */}
+    </div>
   );
 }
 

@@ -1,9 +1,25 @@
-.table {
-    border-collapse: collapse;
-   
+.container {
+    display: flex;
+    flex-direction: row;
 }
+
+.col {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
 .cell {
-    padding: 10px 30px;
-    border: 1px solid rgb(205, 203, 203);
-    background-color: aliceblue;
+    width: 8.5rem;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid transparent;
+    align-items: center;
+}
+
+.data-cell {
+    border: 1px solid gray;
+    background-color: white;
 }
