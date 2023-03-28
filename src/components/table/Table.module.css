@@ -9,6 +9,11 @@
     position: relative;
 }
 
+.col-including-time {
+    display: flex;
+    flex-direction: column;
+}
+
 .cell {
     width: 8.5rem;
     height: 70px;
@@ -23,3 +28,4 @@
     border: 1px solid gray;
     background-color: white;
 }
+
