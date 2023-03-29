@@ -22,20 +22,41 @@ function Table() {
   const TIME_PER_FLOOR = 1000;
   const DELAY_AFTER_ARRIVE = 2000;
   const HANDLE_QUEUE_INTERVAL = 100;
+  const NUM_OF_FLOORS = 10;
+  const NUM_OF_ELEVATORS = 5;
 
-  const [elevatorLocations, setElevatorLocations] = useState([0, 0, 0, 0, 0]);
-  const [elevatorStatus, setElevatorStatus] = useState([0, 0, 0, 0, 0]);
-  const [buttonStatus, setButtonStatus] = useState([
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  ]);
+  // States
+
+  const [elevatorLocations, setElevatorLocations] = useState(
+    [...Array(NUM_OF_ELEVATORS).keys()].map(() => 0)
+  );
+  const [elevatorStatus, setElevatorStatus] = useState(
+    [...Array(NUM_OF_ELEVATORS).keys()].map(() => 0)
+  );
+  const [buttonStatus, setButtonStatus] = useState(
+    [...Array(NUM_OF_FLOORS).keys()].map(() => 0)
+  );
   const [queue, setQueue] = useState([]);
-  const [elevatorTime, setElevatorTime] = useState([
-    { start: 0, end: 0 },
-    { start: 0, end: 0 },
-    { start: 0, end: 0 },
-    { start: 0, end: 0 },
-    { start: 0, end: 0 },
-  ]);
+  const [elevatorTime, setElevatorTime] = useState(
+    [...Array(NUM_OF_ELEVATORS).keys()].map(() => ({
+      start: 0,
+      end: 0,
+    }))
+  );
+
+  const handleElevatorQueue = () => {
+    if (queue.length > 0) {
+      const floorNeedsElevator = queue[0];
+      const chosenElevator = findElevator(floorNeedsElevator);
+
+      if (chosenElevator !== null) {
+        bringElevatorToTarget(chosenElevator, floorNeedsElevator);
+        setQueue(queue.filter((floor, index) => index !== 0));
+      }
+    }
+  };
+
+  useInterval(handleElevatorQueue, HANDLE_QUEUE_INTERVAL);
 
   const arrivedElevator = (elevator, targetFloor) => {
     const releaseElevator = (elevator, targetFloor) => {
@@ -88,12 +109,24 @@ function Table() {
     targetFloor,
     i = 0,
   }) => {
-    setTimeout(() => {
+    if (distance > 0 && i === 0) {
       moveOneFloor(elevator, change);
       i++;
-      if (i < distance) {
+    }
+    if (i === distance) {
+      setTimeout(() => {
+        stopTimer(elevator);
+        arrivedElevator(elevator, targetFloor);
+      }, TIME_PER_FLOOR);
+    }
+    setTimeout(() => {
+      if (i < distance - 1) {
+        moveOneFloor(elevator, change);
+        i++;
         moveMultipleFloors({ distance, change, elevator, targetFloor, i });
-      } else {
+      } else if (i < distance) {
+        moveOneFloor(elevator, change);
+        i++;
         setTimeout(() => {
           stopTimer(elevator);
           arrivedElevator(elevator, targetFloor);
@@ -114,20 +147,6 @@ function Table() {
     startTimer(elevator);
     moveMultipleFloors({ distance, change, elevator, targetFloor });
   };
-
-  const handleElevatorQueue = () => {
-    if (queue.length > 0) {
-      const floorNeedsElevator = queue[0];
-      const chosenElevator = findElevator(floorNeedsElevator);
-
-      if (chosenElevator !== null) {
-        bringElevatorToTarget(chosenElevator, floorNeedsElevator);
-        setQueue(queue.filter((floor, index) => index !== 0));
-      }
-    }
-  };
-
-  useInterval(handleElevatorQueue, HANDLE_QUEUE_INTERVAL);
 
   const isElevatorOnFloor = (floor) => {
     for (let i = 0; i < 5; i++) {
@@ -156,6 +175,11 @@ function Table() {
     const elevator = isElevatorOnFloor(floor);
     if (elevator !== null) {
       arrivedElevator(elevator, floor);
+      setState({
+        setterFunction: setElevatorTime,
+        index: elevator,
+        newValue: { start: 0, end: 0 },
+      });
     } else {
       orderElivator(floor);
     }
@@ -201,20 +225,20 @@ function Table() {
       <div className={styles["col-including-time"]}>
         <p>-</p>
         <div className={styles.col}>
-          {[...Array(10).keys()].map((floor) => {
+          {[...Array(NUM_OF_FLOORS).keys()].map((floor) => {
             return (
               <div key={floor} className={styles.cell}>
-                <h4>{FLOORS[floor]}</h4>
+                <h4>{floor < FLOORS.length ? FLOORS[floor] : `${floor}th`}</h4>
               </div>
             );
           })}
         </div>
       </div>
-      {[...Array(5).keys()].map((elevator, index) => {
+      {[...Array(NUM_OF_ELEVATORS).keys()].map((elevator, index) => {
         return (
           <div className={styles["col-including-time"]} key={index}>
             <p>
-              {elevatorTime[elevator].end - elevatorTime[elevator].start > 0
+              {elevatorTime[elevator].end - elevatorTime[elevator].start >= 0
                 ? `${
                     (elevatorTime[elevator].end -
                       elevatorTime[elevator].start) /
@@ -223,7 +247,7 @@ function Table() {
                 : "-"}
             </p>
             <div key={index} className={styles.col}>
-              {[...Array(10).keys()].map((floor) => {
+              {[...Array(NUM_OF_FLOORS).keys()].map((floor) => {
                 return (
                   <div
                     key={floor}
@@ -242,7 +266,7 @@ function Table() {
       <div className={styles.col}>
         <div className={styles["col-including-time"]}>
           <p>-</p>
-          {[...Array(10).keys()].map((floor) => {
+          {[...Array(NUM_OF_FLOORS).keys()].map((floor) => {
             return (
               <div key={floor} className={styles.cell}>
                 <Button
