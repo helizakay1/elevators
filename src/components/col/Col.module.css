@@ -1,0 +1,10 @@
+.col-including-time {
+  display: flex;
+  flex-direction: column;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}

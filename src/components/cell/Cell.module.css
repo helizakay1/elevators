@@ -1,0 +1,13 @@
+.cell {
+  width: 8.5rem;
+  height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid transparent;
+  align-items: center;
+}
+.data-cell {
+  border: 1px solid gray;
+  background-color: white;
+}
